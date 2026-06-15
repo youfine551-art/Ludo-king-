@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Ludo Game - Levels 1-10</title>
+    <style>
+        * {
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .game-wrapper {
+            background: white;
+            border-radius: 40px;
+            padding: 20px;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.3);
+        }
+
+        .game-container {
+            background: white;
+            border-radius: 30px;
+            overflow: hidden;
+        }
+
+        canvas {
+            display: block;
+            margin: 0 auto;
+            border-radius: 20px;
+            background: #faf8f0;
+            cursor: pointer;
+            width: 100%;
+            height: auto;
+        }
+
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+            padding: 0 10px;
+        }
+
+        .level-section {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            padding: 8px 18px;
+            border-radius: 50px;
+            color: white;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .level-badge {
+            font-size: 24px;
+            font-weight: bold;
+            background: white;
+            color: #667eea;
+            padding: 2px 12px;
+            border-radius: 30px;
+            min-width: 50px;
+            text-align: center;
+        }
+
+        .players-select {
+            display: flex;
+            gap: 10px;
+            background: #f0f0f0;
+            padding: 5px;
+            border-radius: 50px;
+        }
+
+        .player-option {
+            padding: 8px 20px;
+            border: none;
+            border-radius: 40px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+            background: transparent;
+            font-family: inherit;
+        }
+
+        .player-option.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border: none;
+            padding: 12px 28px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 40px;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: white;
+            font-family: inherit;
+        }
+
+        button:hover {
+            transform: scale(1.05);
+        }
+
+        .dice-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .dice {
+            width: 80px;
+            height: 80px;
+            background: white;
+            border-radius: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 55px;
+            font-weight: bold;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+            border: 3px solid #667eea;
+            cursor: pointer;
+        }
+
+        .dice:active {
+            transform: scale(0.95);
+        }
+
+        .turn-indicator {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 22px;
+            font-weight: bold;
+            padding: 12px;
+            border-radius: 50px;
+            background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+        }
+
+        .message {
+            text-align: center;
+            margin-top: 10px;
+            color: #667eea;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .sound-toggle {
+            background: #f0f0f0;
+            border-radius: 30px;
+            padding: 8px 15px;
+            cursor: pointer;
+            font-size: 20px;
+        }
+
+        @media (max-width: 700px) {
+            button {
+                padding: 8px 16px;
+                font-size: 12px;
+            }
+            .dice {
+                width: 60px;
+                height: 60px;
+                font-size: 40px;
+            }
+            .turn-indicator {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div>
+    <div class="game-wrapper">
+        <div class="game-header">
+            <div class="level-section">
+                🌟 LEVEL <span class="level-badge" id="levelDisplay">1</span> / 10
+            </div>
+            <div class="players-select">
+                <button class="player-option active" data-players="2">👥 2 Players</button>
+                <button class="player-option" data-players="4">👥 4 Players</button>
+            </div>
+            <div class="sound-toggle" id="soundToggle">
+                🔊 Sound ON
+            </div>
+        </div>
+        
+        <div class="game-container">
+            <canvas id="ludoCanvas" width="600" height="600"></canvas>
+        </div>
+        
+        <div class="controls">
+            <div class="dice-area">
+                <div class="dice" id="diceValue">🎲</div>
+                <button id="rollBtn">🎲 Roll Dice</button>
+            </div>
+            <button id="resetBtn">🔄 New Game</button>
+        </div>
+        <div class="turn-indicator" id="turnIndicator"></div>
+        <div class="message" id="message"></div>
+    </div>
+</div>
+
+<script>
+    // Get canvas
+    const canvas = document.getElementById('ludoCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    // Game state
+    let currentPlayer = 0;
+    let diceValue = 1;
+    let gameActive = true;
+    let rolling = false;
+    let playerCount = 2;
+    let currentLevel = 1;
+    
+    // Colors and names
+    const colors = ['#e74c3c', '#2ecc71', '#f39c12', '#3498db'];
+    const playerNames = ['RED', 'GREEN', 'YELLOW', 'BLUE'];
+    const colorEmojis = ['🔴', '🟢', '🟡', '🔵'];
+    
+    // Token positions: 4 players, 4 tokens each. -1 = in home, 0-51 = on path
+    let tokens = [
+        [-1, -1, -1, -1],
+        [-1, -1, -1, -1],
+        [-1, -1, -1, -1],
+        [-1, -1, -1, -1]
+    ];
+    
+    // Which players are active
+    let activePlayers = [true, true, false, false];
+    
+    // Starting positions on path for each player
+    const startPositions = [0, 13, 26, 39];
+    
+    // Home positions for drawing tokens
+    const homePositions = {
+        0: [{x: 30, y: 30}, {x: 80, y: 30}, {x: 30, y: 80}, {x: 80, y: 80}],
+        1: [{x: 520, y: 30}, {x: 570, y: 30}, {x: 520, y: 80}, {x: 570, y: 80}],
+        2: [{x: 520, y: 520}, {x: 570, y: 520}, {x: 520, y: 570}, {x: 570, y: 570}],
+        3: [{x: 30, y: 520}, {x: 80, y: 520}, {x: 30, y: 570}, {x: 80, y: 570}]
+    };
+    
+    // Path coordinates (52 positions around the board)
+    let pathCoords = [];
+    
+    // Generate path coordinates
+    function generatePathCoords() {
+        const coords = [];
+        const step = 55;
+        
+        // Top row (rightward)
+        for(let i = 0; i < 6; i++) coords.push({x: 60 + i*step, y: 60});
+        // Right column (downward)
+        for(let i = 1; i < 6; i++) coords.push({x: 335, y: 60 + i*step});
+        // Bottom row (leftward)
+        for(let i = 1; i < 6; i++) coords.push({x: 335 - i*step, y: 335});
+        // Left column (upward)
+        for(let i = 1; i < 6; i++) coords.push({x: 60, y: 335 - i*step});
+        
+        while(coords.length < 52) coords.push({x: 150, y: 150});
+        
+        return coords;
+    }
+    
+    pathCoords = generatePathCoords();
+    
+    // Draw the board
+    function drawBoard() {
+        // White background
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, 600, 600);
+        
+        // Grid lines
+        ctx.strokeStyle = '#e0e0e0';
+        ctx.lineWidth = 2;
+        for(let i = 0; i <= 4; i++) {
+            ctx.beginPath();
+            ctx.moveTo(120 + i*120, 0);
+            ctx.lineTo(120 + i*120, 600);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(0, 120 + i*120);
+            ctx.lineTo(600, 120 + i*120);
+            ctx.stroke();
+        }
+        
+        // Colored corners
+        const corners = [
+            {x: 0, y: 0, color: '#ffebee'},
+            {x: 480, y: 0, color: '#e8f5e9'},
+            {x: 0, y: 480, color: '#fff9c4'},
+            {x: 480, y: 480, color: '#e3f2fd'}
+        ];
+        
+        corners.forEach(corner => {
+            ctx.fillStyle = corner.color;
+            ctx.fillRect(corner.x, corner.y, 120, 120);
+        });
+        
+        // Center
+        ctx.fillStyle = '#faf8f0';
+        ctx.fillRect(120, 120, 360, 360);
+        
+        // Path circles
+        for(let i = 0; i < pathCoords.length; i++) {
+            ctx.beginPath();
+            ctx.arc(pathCoords[i].x, pathCoords[i].y, 12, 0, Math.PI * 2);
+            ctx.fillStyle = '#ffd89b';
+            ctx.fill();
+            ctx.strokeStyle = '#ddd';
+            ctx.stroke();
+        }
+    }
+    
+    // Draw all tokens
+    function drawTokens() {
+        for(let p = 0; p < 4; p++) {
+            if(!activePlayers[p]) continue;
+            
+            for(let t = 0; t < 4; t++) {
+                let pos = tokens[p][t];
+                let x, y;
+                
+                if(pos === -1) {
+                    // Token in home
+                    x = homePositions[p][t].x;
+                    y = homePositions[p][t].y;
+                } else if(pos >= 0 && pos < pathCoords.length) {
+                    // Token on path
+                    x = pathCoords[pos].x;
+                    y = pathCoords[pos].y;
+                } else {
+                    continue; // Token finished
+                }
+                
+                // Draw token
+                ctx.beginPath();
+                ctx.arc(x, y, 13, 0, Math.PI * 2);
+                ctx.fillStyle = colors[p];
+                ctx.fill();
+                ctx.strokeStyle = 'white';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                
+                // Token number
+                ctx.fillStyle = 'white';
+                ctx.font = 'bold 14px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText((t+1).toString(), x, y);
+                
+                // Highlight current player's tokens
+                if(p === currentPlayer && gameActive) {
+                    ctx.beginPath();
+                    ctx.arc(x, y, 17, 0, Math.PI * 2);
+                    ctx.strokeStyle = '#ffd700';
+                    ctx.lineWidth = 3;
+                    ctx.stroke();
+                }
+            }
+        }
+    }
+    
+    // Check if a move is valid
+    function isValidMove(player, token) {
+        if(tokens[player][token] === -1 && diceValue === 6) {
+            return true;
+        }
+        if(tokens[player][token] >= 0 && tokens[player][token] + diceValue < pathCoords.length) {
+            return true;
+        }
+        return false;
+    }
+    
+    // Move a token
+    function moveToken(player, token) {
+        if(!isValidMove(player, token)) return false;
+        
+        if(tokens[player][token] === -1 && diceValue === 6) {
+            tokens[player][token] = startPositions[player];
+        } else if(tokens[player][token] >= 0) {
+            tokens[player][token] += diceValue;
+        }
+        
+        drawBoard();
+        drawTokens();
+        
+        // Check win
+        let allFinished = true;
+        for(let i = 0; i < 4; i++) {
+            if(tokens[player][i] < pathCoords.length - 1) {
+                allFinished = false;
+                break;
+            }
+        }
+        
+        if(allFinished) {
+            gameActive = false;
+            if(currentLevel < 10) {
+                document.getElementById('message').innerHTML = `🎉 ${colorEmojis[player]} ${playerNames[player]} WINS LEVEL ${currentLevel}! 🎉<br>✨ MOVING TO LEVEL ${currentLevel + 1}... ✨`;
+                setTimeout(() => {
+                    currentLevel++;
+                    document.getElementById('levelDisplay').textContent = currentLevel;
+                    resetGame();
+                    document.getElementById('message').innerHTML = `🌟 LEVEL ${currentLevel} - AI gets smarter! 🌟`;
+                    setTimeout(() => {
+                        document.getElementById('message').innerHTML = '';
+                    }, 2000);
+                }, 2000);
+            } else {
+                document.getElementById('message').innerHTML = `🏆🏆🏆 ${colorEmojis[player]} ${playerNames[player]} WINS! 🏆🏆🏆<br>YOU COMPLETED ALL 10 LEVELS!`;
+            }
+            return true;
+        }
+        
+        return true;
+    }
+    
+    // AI decision based on level
+    function aiDecision() {
+        const intelligence = currentLevel / 10;
+        
+        // Try to find best move
+        for(let t = 0; t < 4; t++) {
+            if(tokens[currentPlayer][t] === -1 && diceValue === 6) {
+                if(Math.random() < intelligence + 0.3) return t;
+            }
+            if(tokens[currentPlayer][t] >= 0 && tokens[currentPlayer][t] + diceValue < pathCoords.length) {
+                const progress = tokens[currentPlayer][t] / 52;
+                if(Math.random() < intelligence + progress) return t;
+            }
+        }
+        
+        // Return first valid move
+        for(let t = 0; t < 4; t++) {
+            if(isValidMove(currentPlayer, t)) return t;
+        }
+        return -1;
+    }
+    
+    // Process the current turn
+    function processTurn() {
+        // Check if any valid move exists
+        let hasMove = false;
+        for(let t = 0; t < 4; t++) {
+            if(isValidMove(currentPlayer, t)) {
+                hasMove = true;
+                break;
+            }
+        }
+        
+        if(!hasMove && diceValue !== 6) {
+            document.getElementById('message').textContent = '❌ No moves! Turn passed.';
+            setTimeout(() => nextPlayer(), 1000);
+            return;
+        }
+        
+        if(currentPlayer === 0) {
+            // Human player - wait for token click
+            document.getElementById('message').textContent = '🎯 Click on a token to move!';
+            enableTokenClick();
+        } else {
+            // AI player
+            setTimeout(() => {
+                const token = aiDecision();
+                if(token !== -1) {
+                    moveToken(currentPlayer, token);
+                    if(diceValue !== 6) {
+                        nextPlayer();
+                    } else {
+                        document.getElementById('message').textContent = '🎲 Extra turn! Roll again!';
+                        updateDisplay();
+                    }
+                } else {
+                    nextPlayer();
+                }
+            }, 500);
+        }
+    }
+    
+    // Enable clicking on tokens
+    let tokenClickListener = null;
+    function enableTokenClick() {
+        if(tokenClickListener) {
+            canvas.removeEventListener('click', tokenClickListener);
+        }
+        
+        tokenClickListener = (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            const mouseX = (e.clientX - rect.left) * scaleX;
+            const mouseY = (e.clientY - rect.top) * scaleY;
+            
+            // Check each token
+            for(let t = 0; t < 4; t++) {
+                let pos = tokens[0][t];
+                let x, y;
+                
+                if(pos === -1) {
+                    x = homePositions[0][t].x;
+                    y = homePositions[0][t].y;
+                } else if(pos >= 0 && pos < pathCoords.length) {
+                    x = pathCoords[pos].x;
+                    y = pathCoords[pos].y;
+                } else {
+                    continue;
+                }
+                
+                const dx = mouseX - x;
+                const dy = mouseY - y;
+                if(Math.sqrt(dx*dx + dy*dy) < 20) {
+                    if(isValidMove(0, t)) {
+                        moveToken(0, t);
+                        canvas.removeEventListener('click', tokenClickListener);
+                        if(diceValue !== 6) {
+                            nextPlayer();
+                        } else {
+                            document.getElementById('message').textContent = '🎲 Extra turn! Roll again! 🎲';
+                            updateDisplay();
+                        }
+                    }
+                    return;
+                }
+            }
+        };
+        
+        canvas.addEventListener('click', tokenClickListener);
+        
+        // Auto-clear after 10 seconds
+        setTimeout(() => {
+            if(tokenClickListener) {
+                canvas.removeEventListener('click', tokenClickListener);
+                tokenClickListener = null;
+            }
+        }, 10000);
+    }
+    
+    // Roll the dice
+    function rollDice() {
+        if(rolling || !gameActive) return;
+        
+        // Handle AI turn
+        if(currentPlayer !== 0 && activePlayers[currentPlayer]) {
+            rolling = true;
+            setTimeout(() => {
+                const value = Math.floor(Math.random() * 6) + 1;
+                const symbols = ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
+                document.getElementById('diceValue').textContent = symbols[value - 1];
+                diceValue = value;
+                rolling = false;
+                processTurn();
+            }, 300);
+            return;
+        }
+        
+        // Human roll
+        rolling = true;
+        let rolls = 0;
+        const rollInterval = setInterval(() => {
+            const value = Math.floor(Math.random() * 6) + 1;
+            const symbols = ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
+            document.getElementById('diceValue').textContent = symbols[value - 1];
+            diceValue = value;
+            rolls++;
+            
+            if(rolls >= 8) {
+                clearInterval(rollInterval);
+                rolling = false;
+                processTurn();
+            }
+        }, 60);
+    }
+    
+    // Switch to next player
+    function nextPlayer() {
+        do {
+            currentPlayer = (currentPlayer + 1) % 4;
+        } while(!activePlayers[currentPlayer]);
+        
+        updateDisplay();
+        drawBoard();
+        drawTokens();
+        document.getElementById('message').innerHTML = '';
+        
+        // Clear any pending click listener
+        if(tokenClickListener) {
+            canvas.removeEventListener('click', tokenClickListener);
+            tokenClickListener = null;
+        }
+    }
+    
+    // Update UI display
+    function updateDisplay() {
+        const indicator = document.getElementById('turnIndicator');
+        if(gameActive) {
+            indicator.innerHTML = `🎮 Current Turn: <span style="color: ${colors[currentPlayer]}">${colorEmojis[currentPlayer]} ${playerNames[currentPlayer]}</span>`;
+        }
+    }
+    
+    // Reset the game
+    function resetGame() {
+        tokens = [
+            [-1, -1, -1, -1],
+            [-1, -1, -1, -1],
+            [-1, -1, -1, -1],
+            [-1, -1, -1, -1]
+        ];
+        
+        if(playerCount === 2) {
+            activePlayers = [true, true, false, false];
+        } else {
+            activePlayers = [true, true, true, true];
+        }
+        
+  
